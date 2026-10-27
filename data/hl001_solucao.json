@@ -1,0 +1,17 @@
+{
+ "objetivo": "Reconhecer um padrão hemodinâmico de baixa resistência vascular com débito cardíaco preservado/elevado e hipotensão (padrão compatível com choque distributivo), diferenciando-o de falência de bomba e de perda de volume.",
+ "correta": "distributivo",
+ "explicacao": "PAS 82 mmHg com débito cardíaco calculado de ~7,3 L/min e RVPT ~7,7 indicam que a hipotensão ocorre apesar de fluxo alto: o problema aparente está na baixa resistência (vasodilatação), não na bomba. Febre, foco urinário provável e lactato elevado são evidências associadas a um mecanismo infeccioso/inflamatório; isso é uma hipótese compatível, não confirmação.",
+ "historico": [
+  {"item": "Febre há 3 dias e disúria há 4 dias", "papel": "Associação com foco infeccioso. Sustenta a hipótese infecciosa como causa do padrão distributivo; não a comprova (hemocultura indisponível)."},
+  {"item": "Diabetes tipo 2", "papel": "Fator associado a maior risco de infecções. Contexto, não evidência direta do padrão hemodinâmico."},
+  {"item": "Uso de anti-hipertensivo", "papel": "Hipótese alternativa/contribuinte: pode favorecer hipotensão. Não explica sozinho DC alto com febre e lactato elevado."},
+  {"item": "Pai com doença coronariana", "papel": "Sem papel relevante nesta apresentação: um distrator documentado (falência de bomba cardiogênica seria esperada com DC baixo)."}
+ ],
+ "alternativas": {
+  "cardiogenico": "Esperaria-se débito cardíaco baixo e sinais de congestão. Aqui o DC calculado é alto: evidência contrária.",
+  "hipovolemia": "Perda de volume costuma cursar com DC baixo e extremidades frias. Aqui as extremidades estão aquecidas e o DC é alto: evidência contrária (volume não pôde ser medido).",
+  "crise": "PAS e PAD estão baixas; não há critério de crise hipertensiva.",
+  "hipoxia": "SatO2 93% não atinge o limiar de hipóxia do motor (<90%); não explica hipotensão com RVPT baixa."
+ }
+}
