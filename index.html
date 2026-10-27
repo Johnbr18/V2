@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HEMO LAB — simulador educacional</title>
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0a0f16"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="HEMO LAB"><link rel="apple-touch-icon" href="icon-192.png"><link rel="icon" href="icon-512.png">
+<style>
+:root{--bg:#0a0f16;--p:#111a24;--p2:#0d141c;--ln:#1f2e3d;--tx:#dce8f2;--mu:#7d93a8;--ac:#35c3ff;--ok:#5ee3a8;--wa:#ffb020;--dg:#ff4d5e}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font:14px/1.45 "Segoe UI",system-ui,sans-serif}
+header{display:flex;align-items:center;gap:12px;padding:8px 16px;background:var(--p);border-bottom:1px solid var(--ln);height:48px}
+header b{color:var(--ac);letter-spacing:2px}header small{color:var(--mu)}
+button{background:var(--p2);color:var(--tx);border:1px solid var(--ln);border-radius:8px;padding:7px 12px;cursor:pointer;font:inherit}
+button:hover{border-color:var(--ac)}button.pri{background:var(--ac);color:#06141d;font-weight:600;border-color:var(--ac)}button.on{border-color:var(--ac);color:var(--ac)}
+button:disabled{opacity:.4;cursor:not-allowed}
+main{height:calc(100% - 48px)}.scr{display:none;height:100%;overflow:auto}.scr.show{display:block}
+#sim.show{display:grid;grid-template-columns:260px 1fr 340px;overflow:hidden}
+aside{background:var(--p);padding:12px;overflow:auto;border-right:1px solid var(--ln)}aside.r{border-right:0;border-left:1px solid var(--ln)}
+.cv{position:relative;background:radial-gradient(ellipse at 50% 35%,#0f1a26,var(--bg));min-width:0}.cv svg{width:100%;height:100%}
+.wrap{max-width:980px;margin:0 auto;padding:24px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.card{background:var(--p);border:1px solid var(--ln);border-radius:12px;padding:14px}.card h3{margin:0 0 6px;color:var(--ac);font-size:15px}.card p{margin:0 0 10px;color:var(--mu);font-size:13px}
+.tag{font-size:11px;padding:1px 7px;border-radius:9px;border:1px solid var(--ln);color:var(--mu)}.tag.ok{color:var(--ok);border-color:var(--ok)}.tag.pe{color:var(--wa);border-color:var(--wa)}
+.ctl{margin-bottom:11px}.ctl label{display:flex;justify-content:space-between;color:var(--mu);font-size:12px}.ctl b{color:var(--tx)}.ctl input{width:100%;accent-color:var(--ac)}.ctl small{color:var(--mu);font-size:10px}
+h4{margin:14px 0 6px;color:var(--ac);font-size:13px}table{width:100%;border-collapse:collapse;font-size:12px}td,th{padding:3px 4px;border-bottom:1px solid var(--ln);text-align:left}th{color:var(--mu);font-weight:500}
+.al{border:1px solid var(--wa);background:rgba(255,176,32,.1);padding:7px 9px;border-radius:8px;margin:6px 0;font-size:12px}.al.dg{border-color:var(--dg);background:rgba(255,77,94,.1)}.al.ok{border-color:var(--ok);background:rgba(94,227,168,.08)}
+details{margin:6px 0}summary{cursor:pointer;color:var(--tx)}.hy{border:1px solid var(--ln);border-radius:8px;padding:8px;margin:8px 0;font-size:12px}.hy b{color:var(--ac)}
+.leg{position:absolute;left:10px;bottom:10px;background:rgba(13,20,28,.9);border:1px solid var(--ln);border-radius:8px;padding:6px 10px;font-size:11px;color:var(--mu)}.leg i{display:inline-block;width:18px;height:6px;border-radius:3px;margin:0 4px 1px 8px}
+.ves{fill:none;stroke-linecap:round;opacity:.85}.ves.sel{opacity:1;filter:drop-shadow(0 0 6px #fff)}.dim .ves:not(.sel){opacity:.25}
+[data-sel]{cursor:pointer}[data-sel]:hover{filter:brightness(1.25)}.chs{stroke:#fff!important;stroke-width:2.5!important}
+.lbl{font-size:10px;fill:#c9d8e6;pointer-events:none}.lb2{font-size:9px;fill:#6f879c;pointer-events:none}
+@media(max-width:900px){#sim.show{grid-template-columns:1fr;overflow:auto}.cv{height:60vh}}
+</style></head><body>
+<header><b>HEMO LAB</b><small>simulador educacional — dados fictícios</small><span style="flex:1"></span><button data-act="menu">☰ Menu</button></header>
+<main>
+<section id="menu" class="scr show"><div class="wrap">
+<h2 style="color:var(--ac);margin-top:0">HEMO LAB <small style="color:var(--mu);font-weight:400">· etapa 1: fatia vertical cardiovascular</small></h2>
+<div class="grid">
+<div class="card"><h3>Iniciar caso clínico</h3><p>HL-001: paciente fictício, história, exames solicitáveis, hipóteses e avaliação.</p><button class="pri" data-act="caso" data-m="desafio">Modo desafio</button> <button data-act="caso" data-m="estudo">Modo estudo</button> <button id="btnCont" data-act="continuar" style="display:none">Continuar caso</button></div>
+<div class="card"><h3>Modo livre</h3><p>Manipule FC, VS, pressões, SatO₂ e plaquetas e veja as variáveis calculadas e a análise do motor em C.</p><button class="pri" data-act="livre">Abrir</button></div>
+<div class="card"><h3>Tour e laboratório de circulação</h3><p>15 etapas do percurso do sangue em trajeto conectado, com os parâmetros ao lado.</p><button class="pri" data-act="tour">Iniciar tour</button></div>
+<div class="card"><h3>Explorar órgãos</h3><p>Coração (câmaras e valvas), pulmões e aorta: função, variáveis e limitações. <span class="tag pe">cérebro, rins, fígado: pendentes</span></p><button class="pri" data-act="orgaos">Explorar</button></div>
+<div class="card"><h3>Biblioteca de cenários</h3><p>Os 36 temas planejados e o status de cada um. <span class="tag ok">1 jogável</span></p><button class="pri" data-act="lib">Ver biblioteca</button></div>
+<div class="card"><h3>Ajuda e ciência</h3><p>Variáveis, equações, fidelidade das ilustrações, limitações e licenças.</p><button class="pri" data-act="ajuda">Abrir</button></div>
+</div>
+<h4>Ainda não implementado (etapa 2)</h4><p style="color:var(--mu)">Histórico de sessões · configurações · gráficos temporais · 35 cenários restantes · cérebro, rins e fígado · exames adicionais · retorno venoso, volume sanguíneo, hemoglobina, ventilação, glicemia, eletrólitos e função renal no modelo.</p>
+</div></section>
+
+<section id="sim" class="scr">
+<aside><h4 style="margin-top:0">Parâmetros</h4><div id="ctls"></div><button data-act="restaurar" style="width:100%">↺ Restaurar valores iniciais</button>
+<h4>Calculados</h4><table id="calc"></table><div id="disc" style="color:var(--mu);font-size:11px;margin-top:6px"></div></aside>
+<div class="cv"><svg id="svg" viewBox="60 0 480 680" preserveAspectRatio="xMidYMid meet">
+<defs><filter id="gl"><feGaussianBlur stdDeviation="2"/></filter></defs>
+<g fill="#0d1823" stroke="#233548" stroke-width="1.5"><ellipse cx="300" cy="40" rx="26" ry="32"/><rect x="288" y="66" width="24" height="34"/><rect x="110" y="95" width="380" height="320" rx="70"/><rect x="215" y="395" width="170" height="275" rx="45"/><rect x="68" y="108" width="38" height="270" rx="19"/><rect x="494" y="108" width="38" height="270" rx="19"/></g>
+<text class="lb2" x="300" y="655" text-anchor="middle">tecidos periféricos (leito capilar sistêmico, esquemático)</text>
+<g id="lungs" fill="#2b3f55" fill-opacity=".55" stroke="#6f93b3" stroke-width="1.6">
+<path data-sel="lungR" d="M232,150 Q160,132 128,205 Q104,292 134,340 Q176,362 236,330 Q250,250 242,170Z"/>
+<path data-sel="lungL" d="M368,150 Q440,132 472,205 Q496,292 466,340 Q424,362 372,332 Q368,305 352,288 Q356,230 358,170Z"/></g>
+<g fill="none" stroke="#6f93b3" stroke-width="1.1" stroke-dasharray="4 3"><path d="M138,235 Q190,226 244,214"/><path d="M142,300 Q196,262 246,258"/><path d="M462,250 Q410,238 362,236"/></g>
+<g fill="none" stroke="#9fb4c7" stroke-width="5" stroke-linecap="round"><path d="M300,70 L300,150"/><path d="M300,150 Q282,162 245,176"/><path d="M300,150 Q318,162 362,176"/></g>
+<text class="lb2" x="170" y="150">pulmão D (3 lobos)</text><text class="lb2" x="395" y="150">pulmão E (2 lobos)</text><text class="lb2" x="276" y="82" transform="rotate(90 300 82)">traqueia</text>
+<g class="ves" id="deco" stroke-width="7" stroke="#4d7be8"><path d="M262,96 L262,226"/><path d="M306,208 Q340,184 405,196" stroke="#4d7be8" stroke-width="6"/></g>
+<path class="ves" d="M412,272 Q360,242 338,234" stroke="#e24b5d" stroke-width="6" id="pvL"/>
+<text class="lb2" x="222" y="120">VCS</text><text class="lb2" x="226" y="460">VCI</text><text class="lb2" x="410" y="188">AP esq.</text><text class="lb2" x="380" y="266">VP esq.</text><text class="lb2" x="198" y="176">AP dir.</text><text class="lb2" x="368" y="130">arco aórtico</text>
+<g id="vessels"></g>
+<g id="heart" stroke="#2a0d12" stroke-width="1.4">
+<path data-sel="RA" fill="#6c86d6" fill-opacity=".92" d="M246,222 Q240,250 262,268 L286,252 L284,220 Q262,206 246,222Z"/>
+<path data-sel="RV" fill="#5871c4" fill-opacity=".92" d="M262,268 Q264,318 304,332 L318,300 L312,256 L286,252Z"/>
+<path data-sel="LA" fill="#d05060" fill-opacity=".92" d="M312,214 Q346,204 356,230 Q356,254 336,262 L316,256Z"/>
+<path data-sel="LV" fill="#b8323f" fill-opacity=".95" d="M312,256 L336,262 Q356,270 354,306 Q344,340 306,336 L304,332 L318,300Z"/>
+<g stroke="#fff" stroke-width="2.2"><path d="M284,246 L290,256"/><path d="M314,250 L322,258"/><path d="M299,206 L311,206"/><path d="M316,210 L328,214"/></g>
+<text class="lbl" x="258" y="244">AD</text><text class="lbl" x="280" y="304">VD</text><text class="lbl" x="330" y="236">AE</text><text class="lbl" x="326" y="306">VE</text></g>
+<text class="lb2" x="206" y="262">valva tricúspide</text><text class="lb2" x="326" y="258" transform="translate(30 20)">mitral</text>
+<g id="parts"></g></svg>
+<div class="leg">Cores convencionais (não a cor real do sangue):<i style="background:#4d7be8"></i>menos oxigenado<i style="background:#e0394d"></i>mais oxigenado<i style="background:#8b5fc0"></i>troca gasosa<br>Ilustração vetorial esquemática simplificada — não é reconstrução anatômica validada.</div></div>
+<aside class="r" id="panel"></aside></section>
+
+<section id="lib" class="scr"><div class="wrap"><h2 style="color:var(--ac)">Biblioteca de cenários</h2><p style="color:var(--mu)">36 temas planejados. Somente os marcados como jogáveis têm ficha, regras e testes; os demais ainda não foram implementados.</p><div id="libl" class="grid"></div></div></section>
+<section id="ajuda" class="scr"><div class="wrap" id="ajt"></div></section>
+</main>
+<script src="engine.js"></script>
+<script>
+/*PURE*/
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v)),lerp=(a,b,t)=>a+(b-a)*t;
+function calc(p){return Engine.calc(p)}
+function criterios(p){const c=calc(p),r=[];
+ if(p.PAS>=180||p.PAD>=120)r.push({id:'crise',t:'PAS ≥ 180 ou PAD ≥ 120 mmHg'});
+ if(p.PAS<90&&c.DC<4)r.push({id:'cardio_hipov',t:'PAS < 90 mmHg com DC < 4,0 L/min'});
+ const d=p.PAS<90&&c.DC>6&&c.RVPT<10;
+ if(d)r.push({id:'distrib',t:'PAS < 90 mmHg, DC > 6,0 L/min e RVPT < 10'});
+ if(d&&p.PLT<100000)r.push({id:'civd',t:'padrão distributivo com plaquetas < 100.000/µL'});
+ if(p.SAT<90)r.push({id:'hipoxia',t:'SatO₂ < 90%'});
+ if(p.PLT<50000)r.push({id:'plaq',t:'plaquetas < 50.000/µL'});
+ return r}
+function bloodRGB(s){const t=clamp((90-s)/40,0,1);return[lerp(224,120,t),lerp(57,30,t),lerp(77,170,t)]}
+const mix=(a,b,f)=>a.map((v,i)=>lerp(v,b[i],f)),rgb=a=>`rgb(${a.map(Math.round)})`;
+function toPath(a){let d=`M${a[0]}`;for(let i=1;i<a.length-1;i++){d+=`Q${a[i]} ${(a[i][0]+a[i+1][0])/2},${(a[i][1]+a[i+1][1])/2}`}return d+`L${a[a.length-1]}`}
+/*ENDPURE*/
+const $=s=>document.querySelector(s),NS='http://www.w3.org/2000/svg',esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const PAR=[{k:'FC',n:'Frequência cardíaca',u:'bpm',a:20,b:220,s:1,cl:'controlável'},{k:'VS',n:'Volume sistólico',u:'ml',a:10,b:150,s:1,cl:'controlável'},{k:'PAS',n:'PAS',u:'mmHg',a:40,b:260,s:1,cl:'observado'},{k:'PAD',n:'PAD',u:'mmHg',a:20,b:160,s:1,cl:'observado'},{k:'SAT',n:'SatO₂',u:'%',a:50,b:100,s:1,cl:'controlável'},{k:'PLT',n:'Plaquetas',u:'/µL',a:0,b:400000,s:1000,cl:'observado'}];
+const CASO0={FC:118,VS:62,PAS:82,PAD:44,SAT:93,PLT:142000},LIVRE0={FC:75,VS:70,PAS:120,PAD:80,SAT:98,PLT:250000};
+const FICHA={id:'HL-001',pac:'Homem, 58 anos (fictício)',queixa:'“Febre e confusão há 3 dias.”',sint:'Calafrios, tontura ao levantar, disúria há 4 dias.',ant:'Diabetes tipo 2; hipertensão arterial.',fam:'Pai com doença coronariana.',hab:'Ex-tabagista.',med:'Metformina; um anti-hipertensivo (nome informado: enalapril).',dur:'Febre: 3 dias. Disúria: 4 dias.'};
+const EXAMES={temp:['Temperatura corporal','38,9 °C'],extr:['Exame físico: extremidades e pele','Extremidades aquecidas, enchimento capilar rápido.'],lact:['Lactato','4,2 mmol/L (referência didática: < 2,0)'],leuc:['Leucócitos','18.500 /µL (referência didática: 4.000–11.000)'],creat:['Creatinina','1,6 mg/dL'],hemo:['Hemocultura','Resultado indisponível na janela desta simulação.']};
+const DICAS=['Observe como o débito cardíaco e a RVPT se comportam em relação à pressão.','Compare o débito cardíaco deste paciente com o que se espera em falência da bomba: ele está baixo ou alto?','Procure um padrão que combine pressão baixa, débito alto e resistência reduzida — nenhum parâmetro sozinho decide.'];
+const HIPS=[['distributivo','Padrão distributivo (baixa resistência vascular)'],['cardiogenico','Falência da bomba cardíaca'],['hipovolemia','Perda de volume circulante'],['crise','Crise hipertensiva'],['hipoxia','Hipóxia primária']];
+const D='D',O='O',TP='TP',TS='TS';
+const STEPS=[
+['Veias cavas',D,6,[[270,470],[266,330],[260,262]],'Veias cavas superior e inferior trazem o sangue venoso sistêmico ao átrio direito.'],
+['Átrio direito',D,8,[[260,262],[252,235],[268,224],[284,244]],'Recebe o retorno venoso e o passa ao ventrículo direito pela valva tricúspide.'],
+['Ventrículo direito',D,8,[[284,244],[288,282],[302,300],[306,262],[306,208]],'Ejeta o sangue pela valva pulmonar no tronco pulmonar, contra a baixa resistência pulmonar.'],
+['Artérias pulmonares',D,5,[[306,208],[286,186],[232,184],[186,196]],'Levam sangue pouco oxigenado aos pulmões (única circulação arterial com sangue menos oxigenado). Mostrado o ramo direito; o esquerdo é decorativo.'],
+['Capilares pulmonares',TP,2.5,[[186,196],[150,216],[192,236],[150,258],[190,278]],'Troca gasosa: O₂ passa do alvéolo ao sangue e CO₂ faz o caminho inverso. A SatO₂ do simulador resume o grau de oxigenação resultante.'],
+['Veias pulmonares',O,5,[[190,278],[240,250],[300,226],[322,232]],'Trazem sangue oxigenado ao átrio esquerdo. Trajeto esquemático (na anatomia real entram posteriormente).'],
+['Átrio esquerdo',O,8,[[322,232],[338,222],[350,240],[336,258]],'Recebe o sangue oxigenado e o passa ao ventrículo esquerdo pela valva mitral.'],
+['Ventrículo esquerdo',O,8,[[336,258],[346,300],[326,318],[322,262],[322,212]],'Ejeta o volume sistólico pela valva aórtica; DC = FC × VS. Gera a pressão que perfunde os tecidos.'],
+['Aorta',O,8,[[322,212],[324,160],[352,140],[378,168],[366,260],[366,430]],'Maior artéria; distribui o débito cardíaco. Sua elasticidade amortece a pulsatilidade.'],
+['Artérias sistêmicas',O,5,[[366,430],[364,500],[350,540]],'Conduzem o sangue aos leitos teciduais. Aqui o simulador representa um único leito periférico (esquemático).'],
+['Arteríolas',O,3,[[350,540],[338,562],[322,572]],'Principal local de variação da resistência vascular: seu calibre regula pressão e distribuição do fluxo. RVPT (modelo) = PAM / DC.'],
+['Capilares dos tecidos',TS,2.5,[[322,572],[300,586],[336,600],[298,614],[326,628]],'Entrega de O₂ e retirada de CO₂ nos tecidos. Perfusão tecidual baixa compromete essa entrega.'],
+['Vênulas',D,3,[[326,628],[300,640],[278,626]],'Coletam o sangue dos capilares e convergem para as veias.'],
+['Veias sistêmicas',D,5,[[278,626],[268,580],[272,520]],'Sistema de baixa pressão e alta capacitância; o retorno venoso (não modelado nesta etapa) influencia o enchimento cardíaco.'],
+['Retorno às veias cavas',D,6,[[272,520],[270,470]],'O sangue chega às veias cavas e o ciclo recomeça.']].map(a=>({n:a[0],t:a[1],w:a[2],pts:a[3],tx:a[4]}));
+const ORG={RA:['Átrio direito','Recebe o sangue venoso das veias cavas e o envia ao ventrículo direito pela valva tricúspide.','Pressão venosa central e retorno venoso (não modelados nesta etapa).'],RV:['Ventrículo direito','Bombeia sangue menos oxigenado ao tronco pulmonar pela valva pulmonar.','Pressão e resistência pulmonares (não modelados).'],LA:['Átrio esquerdo','Recebe sangue oxigenado das veias pulmonares e o envia ao ventrículo esquerdo pela valva mitral.','Não modelado isoladamente.'],LV:['Ventrículo esquerdo','Câmara de parede mais espessa; ejeta o volume sistólico na aorta pela valva aórtica e gera a pressão arterial sistêmica.','FC, VS, DC (calculado), PAS, PAD, PAM, RVPT.'],lungR:['Pulmão direito','Três lobos (superior, médio, inferior). Local da troca gasosa nos capilares alveolares.','SatO₂ (observada/controlável). Ventilação e gasometria: pendentes.'],lungL:['Pulmão esquerdo','Dois lobos (superior e inferior) e incisura cardíaca, que acomoda o coração.','SatO₂. Ventilação e gasometria: pendentes.']};
+const ORGLIM='Limitação: ilustração vetorial esquemática simplificada; proporções e posições aproximadas.';
+const TEMAS=['Padrão de pressão arterial elevada','Padrão de pressão arterial reduzida','Taquicardia','Bradicardia','Alteração do ritmo cardíaco','Redução do débito cardíaco','Aumento da resistência vascular sistêmica','Redução do retorno venoso','Hipoxemia','Hiperventilação','Hipoventilação','Padrão ventilatório obstrutivo','Padrão ventilatório restritivo','Alteração da relação ventilação/perfusão','Anemia','Policitemia','Redução do transporte de oxigênio','Padrão compatível com perda sanguínea','Hiperglicemia','Hipoglicemia','Acidose metabólica','Alcalose metabólica','Acidose respiratória','Alcalose respiratória','Desidratação','Sobrecarga de volume','Hipercalemia','Hipocalemia','Alteração da função renal','Distúrbio da concentração de sódio','Redução da perfusão tecidual','Alteração da resistência vascular periférica','Alteração do retorno venoso','Edema','Cenário fisiopatológico de trombose','Alteração da distribuição do fluxo sanguíneo'];
+let mode='menu',P={...LIVRE0},ini={...LIVRE0},desafio=false,ex=[],dicas=0,fim=null,eng=null,analises=0,sel=null,tour={i:0,play:false,t0:0},built=false,cum=[],total=0,els=[],parts=[],tmr=null;
+const show=id=>{document.querySelectorAll('.scr').forEach(s=>s.classList.toggle('show',s.id===id))};
+function save(){try{if(mode.startsWith('caso'))localStorage.setItem('hemolab_caso',JSON.stringify({desafio,P,ex,dicas,analises}))}catch(e){}}
+function build(){if(built)return;built=true;const g=$('#vessels');STEPS.forEach((s,i)=>{const p=document.createElementNS(NS,'path');p.setAttribute('d',toPath(s.pts));p.setAttribute('class','ves');p.setAttribute('stroke-width',s.w);g.appendChild(p);els.push(p);s.len=p.getTotalLength();cum.push(total);total+=s.len});
+ for(let i=0;i<40;i++){const c=document.createElementNS(NS,'circle');c.setAttribute('r',2.6);$('#parts').appendChild(c);parts.push(c)}}
+function colorize(){const o=bloodRGB(P.SAT);STEPS.forEach((s,i)=>els[i].setAttribute('stroke',s.t==D?'#4d7be8':s.t==O?rgb(o):'#8b5fc0'));$('#pvL').setAttribute('stroke',rgb(o))}
+function go(m){mode=m;clearInterval(tmr);tour.play=false;if(['menu','lib','ajuda'].includes(m)){show(m);if(m=='menu')contBtn();return}
+ show('sim');build();sel=null;els.forEach(e=>e.classList.remove('sel'));$('#svg').classList.toggle('dim',m=='tour');
+ if(m=='livre'){P={...LIVRE0};ini={...LIVRE0}}if(m=='tour'||m=='orgaos'){P={...LIVRE0};ini={...LIVRE0}}
+ ctls();colorize();upd()}
+function ctls(){const lk=mode=='caso-desafio'&&!fim;$('#ctls').innerHTML=PAR.map(p=>{const bl=lk&&p.cl=='observado';return`<div class="ctl"><label>${p.n} <b id="v${p.k}"></b></label><input type="range" id="r${p.k}" min="${p.a}" max="${p.b}" step="${p.s}" value="${P[p.k]}" ${bl?'disabled':''}><small>${p.cl}${bl?' · bloqueado neste modo':''}</small></div>`}).join('');
+ PAR.forEach(p=>$('#r'+p.k).addEventListener('input',e=>{P[p.k]=+e.target.value;upd()}))}
+function upd(){const c=calc(P);PAR.forEach(p=>{$('#v'+p.k).textContent=(p.k=='PLT'?Math.round(P[p.k]).toLocaleString('pt-BR'):P[p.k])+' '+p.u;const r=$('#r'+p.k);if(r)r.value=P[p.k]});
+ const ci=calc(ini),f=(x,d=2)=>x.toFixed(d).replace('.',',');
+ $('#calc').innerHTML=`<tr><th></th><th>inicial</th><th>atual</th></tr>`+[['DC (L/min)','DC'],['PAM (mmHg)','PAM'],['RVPT','RVPT']].map(r=>`<tr><td>${r[0]}</td><td>${f(ci[r[1]])}</td><td><b>${f(c[r[1]])}</b></td></tr>`).join('');
+ $('#disc').innerHTML='DC = FC×VS/1000 · PAM = PAD+(PAS−PAD)/3 (aproximação) · RVPT = PAM/DC (PVC desprezada; unidades mmHg·min/L). PAS/PAD são <b>observações</b>: nunca são alteradas pelo modelo.';
+ colorize();clearTimeout(upd.t);upd.t=setTimeout(analisar,200);panel();save()}
+function analisar(){eng=Engine.analisar(P);panelAn()}
+function relat(reveal){if(!reveal&&analises<1)return'<div class="al">Use “Solicitar análise” para ver as alterações numéricas. Os nomes das hipóteses só aparecem ao finalizar o caso.</div>';if(!eng)return'<p style="color:var(--mu)">Calculando…</p>';const cr=criterios(P);let h='';
+ if(eng.validacao&&eng.validacao.length)h+=eng.validacao.map(v=>`<div class="al dg">${esc(v)}</div>`).join('');
+ h+=`<p style="margin:4px 0"><b>Alterações numéricas:</b> ${cr.length?cr.map(x=>esc(x.t)).join('; '):'nenhum critério das regras cadastradas foi atingido.'}</p>`;
+ if(!reveal)return h+`<div class="al">Modo desafio: nomes das hipóteses e mecanismos são revelados ao finalizar o caso.</div>`;
+ if(!eng.hipoteses.length)return h+'<div class="al ok">Nenhuma regra acionada. Isso não exclui problema: o sistema só avalia estes parâmetros.</div>';
+ return h+eng.hipoteses.map(x=>`<div class="hy"><b>${esc(x.nome)}</b> <span class="tag">hipótese, não diagnóstico</span><br><b>Parâmetros:</b> ${esc(x.parametros)}<br><b>Possíveis causas:</b> ${esc(x.causas)}<br><b>Mecanismo:</b> ${esc(x.mecanismo)}<br><b>Suporte:</b> ${esc(x.suporte)}<br><b>Dados faltantes:</b> ${esc(x.faltantes)}<br><b>Próximas etapas:</b> ${esc(x.proximas)}<br><b>Limiar/fonte:</b> ${esc(x.fonte)}</div>`).join('')}
+function panelAn(){const a=$('#an');if(a)a.innerHTML=relat(mode!='caso-desafio'||!!fim)}
+const anBox=()=>`<h4>Análise do motor de regras</h4><div id="an"></div>`;
+function ficha(rev){return`<h4>Ficha ${FICHA.id}</h4><table><tr><td>Paciente</td><td>${FICHA.pac}</td></tr><tr><td>Queixa</td><td>${FICHA.queixa}</td></tr><tr><td>Sintomas</td><td>${FICHA.sint}</td></tr><tr><td>Duração</td><td>${FICHA.dur}</td></tr><tr><td>Antecedentes</td><td>${FICHA.ant}</td></tr><tr><td>Família</td><td>${FICHA.fam}</td></tr><tr><td>Hábitos</td><td>${FICHA.hab}</td></tr><tr><td>Medicamentos</td><td>${FICHA.med}</td></tr></table>`}
+function exBox(){return`<h4>Exames e exame físico (dados fictícios)</h4>`+Object.keys(EXAMES).map(k=>ex.includes(k)?`<div class="al ok"><b>${EXAMES[k][0]}:</b> ${EXAMES[k][1]}</div>`:`<button data-act="exame" data-k="${k}" style="margin:2px">Solicitar: ${EXAMES[k][0]}</button>`).join('')+`<p style="color:var(--mu);font-size:12px">Dados ausentes: ${Object.keys(EXAMES).filter(k=>!ex.includes(k)).map(k=>EXAMES[k][0]).join(', ')||'nenhum'}.</p>`}
+let sol=null;async function carregaSol(){if(!sol){try{sol=await (await fetch('data/hl001_solucao.json')).json()}catch(e){sol={objetivo:'(arquivo de solução indisponível)',correta:'',historico:[],alternativas:{},explicacao:''}}}return sol}
+function panel(){const p=$('#panel');if(mode=='caso-desafio'||mode=='caso-estudo'){const des=mode=='caso-desafio'&&!fim;
+ p.innerHTML=(des?`<div class="al">Caso HL-001 · <b>modo desafio</b>. Investigue; a solução fica reservada.</div>`:`<div class="al ok">Caso HL-001 · <b>modo estudo</b>${fim?' · caso finalizado':''}</div><div id="obj"></div>`)+ficha()+exBox()+
+ (des?`<h4>Dicas (${dicas}/3)</h4>${DICAS.slice(0,dicas).map(x=>`<div class="al">${x}</div>`).join('')}<button data-act="dica" ${dicas>=3?'disabled':''}>Pedir dica</button><h4>Hipótese</h4>${HIPS.map(h=>`<label style="display:block"><input type="radio" name="hip" value="${h[0]}"> ${h[1]}</label>`).join('')}<p><button class="pri" data-act="finalizar">Finalizar e avaliar</button> <button data-act="solic">Solicitar análise</button></p>`:`<p><button data-act="reiniciar">Reiniciar caso</button></p>`)+anBox()+`<div id="aval"></div>`;
+ if(mode=='caso-estudo')carregaSol().then(s=>{const o=$('#obj');if(o)o.innerHTML=`<p><b>Objetivo:</b> ${esc(s.objetivo)}</p>`});panelAn();return}
+ if(mode=='livre'){p.innerHTML=`<h4 style="margin-top:0">Modo livre</h4><p style="color:var(--mu)">Ajuste os parâmetros; o motor de regras analisa os valores atuais. Valores fictícios, sem paciente.</p>`+anBox();panelAn();return}
+ if(mode=='tour'){const s=STEPS[tour.i];els.forEach((e,i)=>e.classList.toggle('sel',i==tour.i));
+ p.innerHTML=`<h4 style="margin-top:0">Tour da circulação</h4><div><button data-act="tprev">◀</button> <button data-act="tplay">${tour.play?'⏸ Pausar':'▶ Iniciar'}</button> <button data-act="tnext">▶|</button> <button data-act="trest">⟲ Reiniciar</button></div><div class="al ok" style="margin-top:8px"><b>${tour.i+1}/15 · ${s.n}</b><br>${s.tx}</div>`+
+ (tour.i>=7&&tour.i<=11?`<button data-act="caso" data-m="estudo">Abrir caso relacionado (HL-001: resistência e perfusão)</button>`:`<p style="color:var(--mu);font-size:12px">Nenhum caso disponível para esta etapa (pendente).</p>`)+
+ `<details><summary>Pressão, fluxo e resistência</summary><p style="font-size:12px">O fluxo (DC) tende a aumentar com a pressão motriz e a diminuir com a resistência: DC ≈ PAM/RVPT (aqui sem PVC). Mude FC, VS e PAS/PAD à esquerda e veja a velocidade das partículas (proporcional ao DC; escala visual, não física).</p></details><h4>Etapas</h4>`+STEPS.map((x,i)=>`<button class="${i==tour.i?'on':''}" data-act="tstep" data-i="${i}" style="margin:2px;font-size:12px">${i+1}. ${x.n}</button>`).join('')+anBox();panelAn();return}
+ if(mode=='orgaos'){const o=ORG[sel];document.querySelectorAll('[data-sel]').forEach(e=>e.classList.toggle('chs',e.dataset.sel==sel));
+ p.innerHTML=`<h4 style="margin-top:0">Explorar órgãos</h4>`+Object.keys(ORG).map(k=>`<button class="${k==sel?'on':''}" data-act="sel" data-k="${k}" style="margin:2px">${ORG[k][0]}</button>`).join('')+(o?`<div class="al ok" style="margin-top:8px"><b>${o[0]}</b><br><b>Função:</b> ${o[1]}<br><b>Variáveis do simulador:</b> ${o[2]}<br><b>Casos relacionados:</b> ${sel=='LV'||sel=='RV'?'HL-001 (padrão hemodinâmico)':'nenhum disponível (pendente)'}<br><i>${ORGLIM}</i></div>`:'<p style="color:var(--mu)">Clique em uma estrutura na ilustração ou nos botões acima.</p>')+`<p style="color:var(--mu);font-size:12px">Cérebro, rins e fígado: visualização pendente (etapa 2).</p>`}}
+const acts={menu:()=>go('menu'),lib:()=>{$('#libl').innerHTML=TEMAS.map((t,i)=>`<div class="card"><h3>${i+1}. ${t}</h3>${i==31?`<span class="tag ok">jogável · HL-001</span><br><br><button class="pri" data-act="caso" data-m="desafio">Abrir caso</button>`:`<span class="tag pe">pendente (etapa 2)</span>`}</div>`).join('');go('lib')},
+ ajuda:()=>{$('#ajt').innerHTML=`<h2 style="color:var(--ac)">Ajuda e ciência</h2><h4>Classes de variáveis</h4><table><tr><th>Variável</th><th>Classe</th><th>Origem / cálculo</th></tr><tr><td>FC, VS</td><td>controlável</td><td>entrada do usuário</td></tr><tr><td>PAS, PAD, SatO₂, plaquetas</td><td>dado observado</td><td>ficha do caso; bloqueadas no modo desafio; nunca alteradas pelo modelo</td></tr><tr><td>DC, PAM, RVPT</td><td>calculada</td><td>DC=FC×VS/1000; PAM=PAD+(PAS−PAD)/3; RVPT=PAM/DC</td></tr><tr><td>Lactato, leucócitos, creatinina, temperatura</td><td>exame simulado</td><td>fictício, fixo no caso</td></tr><tr><td>Hipóteses</td><td>interpretativa</td><td>regras do motor (porte em JavaScript do motor em C, comparado campo a campo nos testes); limiares herdados do programa original, sem fonte clínica documentada no código</td></tr></table><h4>Fidelidade</h4><p>O motor de regras roda no próprio navegador, inclusive offline. Ilustrações: vetor SVG esquemático simplificado, feito para este projeto (sem modelos 3D externos, sem recursos de terceiros). O modelo fisiológico é <b>derivativo</b>: calcula DC, PAM e RVPT a partir das entradas e aplica regras; não é um modelo preditivo em malha fechada (alterar FC não altera PAS automaticamente). Retorno venoso, volume sanguíneo, hemoglobina, ventilação, glicemia, eletrólitos e função renal ainda não estão modelados. A RVPT omite a pressão venosa central e não usa dyn·s·cm⁻⁵.</p><h4>Uso</h4><p>Ferramenta educacional com dados fictícios. Não é dispositivo médico, não diagnostica e não orienta tratamento. A solução do caso fica em arquivo separado, mas em hospedagem estática puramente local ela é tecnicamente inspecionável.</p><button data-act="menu">Voltar</button>`;go('ajuda')},
+ caso:d=>{desafio=d.m=='desafio';P={...CASO0};ini={...CASO0};ex=[];dicas=0;fim=null;analises=0;go(desafio?'caso-desafio':'caso-estudo')},
+ continuar:()=>{try{const s=JSON.parse(localStorage.getItem('hemolab_caso'));desafio=s.desafio;go(desafio?'caso-desafio':'caso-estudo');P=s.P;ini={...CASO0};ex=s.ex;dicas=s.dicas;analises=s.analises||0;ctls();upd()}catch(e){acts.caso({m:'desafio'})}},
+ livre:()=>go('livre'),tour:()=>{tour.i=0;go('tour')},orgaos:()=>go('orgaos'),
+ restaurar:()=>{P={...ini};upd()},reiniciar:()=>acts.caso({m:desafio?'desafio':'estudo'}),
+ exame:d=>{if(!ex.includes(d.k))ex.push(d.k);panel();panelAn();save()},dica:()=>{if(dicas<3)dicas++;panel();panelAn();save()},solic:()=>{analises++;panelAn();save()},
+ async finalizar(){const h=document.querySelector('input[name=hip]:checked');if(!h){alert('Escolha uma hipótese antes de finalizar.');return}const s=await carregaSol();fim={h:h.value};mode='caso-estudo';ctls();panel();
+  const cr=[['Escolheu a hipótese compatível com o padrão',h.value==s.correta],['Solicitou pelo menos 2 exames/dados',ex.length>=2],['Consultou a análise numérica ao menos uma vez',analises>=1]];
+  $('#aval').innerHTML=`<h4>Avaliação (rubrica didática, sem probabilidades)</h4>${cr.map(c=>`<div class="al ${c[1]?'ok':''}">${c[1]?'✔':'✖'} ${c[0]}</div>`).join('')}<p>Dicas usadas: ${dicas}/3.</p><p><b>Objetivo:</b> ${esc(s.objetivo)}</p><p><b>Explicação:</b> ${esc(s.explicacao)}</p><h4>Função de cada item do histórico</h4><table>${s.historico.map(x=>`<tr><td>${esc(x.item)}</td><td>${esc(x.papel)}</td></tr>`).join('')}</table><h4>Hipóteses alternativas</h4>${Object.values(s.alternativas).map(x=>`<div class="al">${esc(x)}</div>`).join('')}<p><button data-act="reiniciar">Reiniciar caso</button></p>`;try{localStorage.removeItem('hemolab_caso')}catch(e){}},
+ sel:d=>{sel=d.k;panel()},tstep:d=>{tour.i=+d.i;panel()},tprev:()=>{tour.i=(tour.i+14)%15;panel()},tnext:()=>{tour.i=(tour.i+1)%15;panel()},trest:()=>{tour.i=0;tour.play=false;clearInterval(tmr);panel()},
+ tplay:()=>{tour.play=!tour.play;clearInterval(tmr);if(tour.play)tmr=setInterval(()=>{tour.i=(tour.i+1)%15;panel()},5000);panel()}};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(b){acts[b.dataset.act](b.dataset);return}const s=e.target.closest('[data-sel]');if(s&&mode=='orgaos'){sel=s.dataset.sel;panel()}});
+function contBtn(){try{$('#btnCont').style.display=localStorage.getItem('hemolab_caso')?'':'none'}catch(e){}}
+function find(s){let i=cum.length-1;while(i>0&&s<cum[i])i--;return i}
+function frame(t){requestAnimationFrame(frame);if(!built||mode=='menu'||mode=='lib'||mode=='ajuda')return;const c=calc(P),ph=(t/1000*P.FC/60)%1,b=Math.pow(Math.max(0,Math.sin(ph*6.2832)),2),k=1-.045*b*(P.VS/70);
+ $('#heart').setAttribute('transform',`translate(300 280) scale(${k}) translate(-300 -280)`);const sp=total*(Math.max(c.DC,0)/5)/12,o=bloodRGB(P.SAT),dx=[77,123,232],N=parts.length;
+ parts.forEach((q,i)=>{let s,idx;if(mode=='tour'){idx=tour.i;s=cum[idx]+((i/N)*STEPS[idx].len+t/1000*sp*.6)%STEPS[idx].len}else{s=(i*total/N+t/1000*sp)%total;idx=find(s)}
+  const st=STEPS[idx],f=(s-cum[idx])/st.len,pt=els[idx].getPointAtLength(clamp(s-cum[idx],0,st.len));q.setAttribute('cx',pt.x);q.setAttribute('cy',pt.y);
+  q.setAttribute('fill',rgb(st.t==D?dx:st.t==O?o:st.t==TP?mix(dx,o,f):mix(o,dx,f)))})}
+requestAnimationFrame(frame);contBtn();
+if(typeof navigator!=='undefined'&&'serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+</script></body></html>
